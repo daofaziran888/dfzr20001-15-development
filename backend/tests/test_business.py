@@ -79,6 +79,13 @@ class TestFullProcessChain(unittest.TestCase):
         for r in store.rows("certification"):
             r["status"] = "已确认"
             r["有效期至"] = "2027-12-31"
+        # 用例共享内存仓库，清除其他用例遗留的冻结状态，避免工序推进被误伤。
+        store._frozen.clear()
+        for mod in store.module_names():
+            for row in store.rows(mod):
+                if row.get("frozen"):
+                    row["frozen"] = False
+                    row.pop("freeze_reason", None)
 
     def test_advance_from_picking_to_multiple_steps(self):
         """采摘推进到萎凋，再推进到杀青，验证下游引用上游。"""
